@@ -28,10 +28,15 @@ cleanup() {
     if [[ -f "$SERVER_PID_FILE" ]]; then
         local pids=$(cat "$SERVER_PID_FILE")
         echo -e "\n${BLUE}>>> Terminating background processes...${NC}"
+
+        # 1. Kill tracked PIDs (Server + Bridge)
         for pid in $pids; do
-            # Kill process group
             kill -TERM -"$pid" 2>/dev/null || kill -9 "$pid" 2>/dev/null || true
         done
+
+        # 2. Targeted sweep for the LAN bridge (safety net)
+        pkill -f "socat TCP-LISTEN:11435" 2>/dev/null || true
+
         sleep 1
         rm -f "$SERVER_PID_FILE"
         rm -rf "$SOCK_DIR"
@@ -73,6 +78,24 @@ get_local_models() {
         curl --silent --unix-socket "$SOCKET_PATH" http://localhost/api/tags |
             grep -oP '"name":"\K[^"]+' | sed 's/:latest//' || true
     fi
+}
+
+expose_network() {
+    ensure_server || return 1
+
+    # Check if port is already in use
+    if ss -tuln | grep -q ":11435 "; then
+        echo -e "${RED}>>> Port 11435 is already occupied.${NC}"
+        return
+    fi
+
+    echo -e "${BLUE}>>> Exposing infra to LAN (0.0.0.0:11435)...${NC}"
+    # Start the bridge and append PID to tracker
+    socat TCP-LISTEN:11435,bind=0.0.0.0,fork,reuseaddr UNIX-CONNECT:"$SOCKET_PATH" &
+    echo $! >>"$SERVER_PID_FILE"
+
+    local LOCAL_IP=$(ip route get 1 | awk '{print $7;exit}')
+    echo -e "${GREEN}>>> SUCCESS: Connect external apps via http://$LOCAL_IP:11435${NC}"
 }
 
 run_sandbox() {
@@ -143,6 +166,7 @@ interactive_menu() {
         echo "4) Run Model (Search Local)"
         echo "5) List Locally Stored Models"
         echo "6) Purge Binary"
+        echo "7) Expose to LAN (Port 11435)"
         echo "q) Exit"
         read -p "Selection: " opt
 
@@ -187,6 +211,7 @@ interactive_menu() {
             rm -rf "$INSTALLER_DIR"
             echo "Purged."
             ;;
+        7) expose_network ;;
         q) exit 0 ;;
         esac
     done
