@@ -1,0 +1,30 @@
+# Use Qwen 3.5 as the base (adjust size to your VRAM: 2B, 9B, or 35B)
+FROM qwen3.5
+
+# --- Memory & Context Optimizations ---
+# Increase context to 32k (Safe for 12GB VRAM). 
+# Qwen 3.5 supports 262k, but KV Cache will eat your RAM if set too high.
+PARAMETER num_ctx 32768
+
+# Predict more tokens for long code blocks
+PARAMETER num_predict 4096
+
+# Flash Attention & KV Cache Quantization (Crucial for 2026 speed)
+# Note: These are often set via ENV vars in your script, but good to have here.
+PARAMETER f16_kv false
+PARAMETER num_batch 1024
+
+# --- Sampling for Coding (Precise & Decisive) ---
+PARAMETER temperature 0.6
+PARAMETER top_p 0.95
+PARAMETER repeat_penalty 1.1
+
+# --- The Agentic System Prompt ---
+SYSTEM """
+You are an expert software engineer and agent.
+1. Be concise: Do not explain basic concepts unless asked.
+2. Tool Use: You have access to a bash shell and filesystem. Always verify file paths before editing.
+3. Memory: Use the provided context to track long-term project goals.
+4. Thinking: Use <thought> blocks for complex planning, but keep them brief.
+Current Date: 2026-04-17
+"""
