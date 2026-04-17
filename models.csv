@@ -1,0 +1,15 @@
+Model_ID,Family,Params,Context,Min_VRAM,Best_Use,Key_Feature
+qwen2.5:0.5b,Qwen,0.5B,128K,1GB,IoT/Edge,Tiny footprint
+qwen2.5:7b,Qwen,7.2B,128K,8GB,Coding,High-performance 7B
+qwen2.5:32b,Qwen,32B,128K,20GB,Logic,Great balance for 24GB VRAM
+qwen3.5,Qwen,7.2B,256K,8.5GB,Coding,Modern qwen 
+qwen3-coder-next,Qwen,7.2B,256K,8.5GB,Coding,Modern qwen 
+llama4:scout,Llama,17B(MoE),10M,9.5GB,Long_Doc,10 Million token context window
+llama4:maverick,Llama,17B(Act),128K,14GB,General,Beats GPT-4o in reasoning
+phi4:mini-flash,Phi,3.8B,64K,4.5GB,Math/Logic,Hybrid SSM/Attention architecture
+phi4:mini-ins,Phi,3.8B,128K,4.8GB,Instructions,Microsoft optimized for chat
+gemma3:4b,Gemma,4B,128K,5.5GB,Mobile_AI,Native multimodal (Vision/Audio)
+gemma3:27b,Gemma,27B,128K,22GB,Reasoning,Google's premier open-weight logic
+deepseek-v3.2,DeepSeek,671B(MoE),128K,40GB+,Advanced,Highest math/code benchmark
+mistral-3.1:7b,Mistral,7B,128K,8.2GB,Legacy_Stable,Reliable for basic RAG
+command-r-v2,Cohere,35B,128K,20GB,RAG/Agent,Top-tier tool use/citation logic
