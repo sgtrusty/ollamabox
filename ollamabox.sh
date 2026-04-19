@@ -3,8 +3,6 @@
 # Total rootless, air-gapped LLM management.
 # Optimized for Artix Linux - April 2026
 
-set -e
-
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$ROOT_DIR/lib/config.sh"
@@ -19,3 +17,4 @@ setup_env
 install_deps
 source "$ROOT_DIR/src/menu.sh"
 
+interactive_menu
