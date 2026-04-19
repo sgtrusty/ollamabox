@@ -25,7 +25,7 @@ menu_main() {
     while true; do
         status=$(get_status)
         # Depth 0 means this is the root
-        choice=$(UI_menu -d 0 "Ollama Manager [$status]" "Operations" "Development" "Configuration")
+        choice=$(UI_menu -d 0 "Ollama Manager [$status]" "!cyan⚡ Operations" "!yellow🛠️ Development" "!magenta⚙️ Configuration")
         ret=$?
         echo $ret >/tmp/log.txt
 
@@ -47,9 +47,9 @@ menu_main() {
 
 _menu_call() {
     case "$1" in
-    "Operations") menu_operations ;;
-    "Development") menu_development ;;
-    "Configuration") menu_configuration ;;
+    *Operations*) menu_operations ;;
+    *Development*) menu_development ;;
+    *Configuration*) menu_configuration ;;
     esac
     return 0 # Force success so the main menu loop continues
 }
@@ -57,7 +57,7 @@ _menu_call() {
 menu_operations() {
     local choice ret
     while true; do
-        choice=$(UI_menu -d 1 "Operations [$(get_status)]" "Start Server" "Stop Server" "List Models")
+        choice=$(UI_menu -d 1 "Operations [$(get_status)]" "!cyan▶️ Start Server" "!red⏹️ Stop Server" "!info📋 List Models" "!cyan⬇️ Download Models")
         ret=$?
 
         if [[ $ret -eq 1 ]]; then
@@ -67,9 +67,10 @@ menu_operations() {
         [[ $ret -ne 0 ]] && continue
 
         case "$choice" in
-        "Start Server") run_and_expose ;;
-        "Stop Server") cleanup ;;
-        "List Models") get_local_models ;;
+        *Start\ Server*) run_and_expose ;;
+        *Stop\ Server*) cleanup ;;
+        *List\ Models*) ensure_server && get_local_models ;;
+        *Download\ Models*) menu_download ;;
         esac
     done
     return 0 # Crucial: Tell menu_main that the submenu closed normally
@@ -109,13 +110,18 @@ confirm_start() {
 }
 
 menu_download() {
-    local model
-    model=$(db_list_models | fzf --header="Select model" | awk '{print $1}')
-    [[ -z "$model" ]] && read -p "Model name: " model
-    [[ -n "$model" ]] && {
+    local models
+    # Allow multiple selection with fzf -m; fallback to manual entry if none chosen
+    models=$(db_list_models | fzf -m --header="Select model(s)" | awk '{print $1}')
+    if [[ -z "$models" ]]; then
+        read -p "Model name (space-separated if multiple): " models
+    fi
+    [[ -n "$models" ]] && {
         setup_env
-        run_sandbox "pull" "$model"
-        db_log_pull "$model" "success" "" 0
+        for model in $models; do
+            run_sandbox "pull" "$model"
+            db_log_pull "$model" "success" "" 0
+        done
     }
 }
 
@@ -127,7 +133,7 @@ menu_run() {
 
 menu_development() {
     local choice ret
-    local -a dev_opts=("Run Tests" "Rankings" "Agent" "Plugins" "HTTP")
+    local -a dev_opts=("!cyan🧪 Run Tests" "!yellow📊 Rankings" "!magenta🤖 Agent" "!info🔌 Plugins" "!cyan📈 Monitor")
 
     while true; do
         choice=$(UI_menu -d 1 "Development" "${dev_opts[@]}")
@@ -137,11 +143,11 @@ menu_development() {
         [[ $ret -ne 0 ]] && continue
 
         case "$choice" in
-        "Run Tests") run_tests ;;
-        "Rankings") db_get_ranked 10 ;;
-        "Agent") menu_agent ;;
-        "Plugins") ls "$PLUGINS_DIR" ;;
-        "HTTP") ensure_server && monitor_http ;;
+        *Run\ Tests*) run_tests ;;
+        *Rankings*) db_get_ranked 10 ;;
+        *Agent*) menu_agent ;;
+        *Plugins*) ls "$PLUGINS_DIR" ;;
+        *Monitor*) ensure_server && monitor_http ;;
         esac
     done
 }
@@ -157,7 +163,7 @@ menu_agent() {
 
 menu_configuration() {
     local choice ret
-    local -a cfg_opts=("DB Maintenance" "Purge Binary")
+    local -a cfg_opts=("⚙️ DB Maintenance" "!danger⚠️ Cannot be reverted: Purge Binary")
 
     while true; do
         choice=$(UI_menu -d 1 "Configuration" "${cfg_opts[@]}")
@@ -167,12 +173,12 @@ menu_configuration() {
         [[ $ret -ne 0 ]] && continue
 
         case "$choice" in
-        "DB Maintenance")
+        *DB\ Maintenance*)
             read -p "Days to keep: " days
             db_maintenance "${days:-30}"
             db_get_stats
             ;;
-        "Purge Binary") purge_binary ;;
+        *Purge\ Binary*) purge_binary ;;
         esac
     done
 }

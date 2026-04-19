@@ -90,8 +90,14 @@ run_sandbox() {
 }
 
 purge_binary() {
+    ui_msg warn "⚠️ This will permanently delete the ollama binary and models!"
+    read -p "Are you sure? [y/N] " yn
+    [[ "$yn" =~ ^[yY] ]] || {
+        ui_msg info "Aborted."
+        return 1
+    }
     rm -rf "$INSTALLER_DIR"
-    echo -e "${BLUE}>>> Binary purged.${NC}"
+    echo -e "${RED}🗑️ Binary purged.${NC}"
 }
 
 monitor_http() {
@@ -100,6 +106,7 @@ monitor_http() {
     echo -e "${BLUE}>>> Press Ctrl+C to stop.${NC}"
     tshark -i lo -d tcp.port==$NETWORK_PORT,http -Y "http.request || http.response" \
         -T fields -e http.request.method -e http.request.uri -e json.value.string -e json.key 2>/dev/null ||
-    tshark -i lo "tcp.port == $NETWORK_PORT" -T fields -e http.request.method -e http.request.uri 2>/dev/null ||
-    echo -e "${RED}>>> tshark not available. Install wireshark-cli.${NC}"
+        tshark -i lo "tcp.port == $NETWORK_PORT" -T fields -e http.request.method -e http.request.uri 2>/dev/null ||
+        echo -e "${RED}>>> tshark not available. Install wireshark-cli.${NC}"
 }
+

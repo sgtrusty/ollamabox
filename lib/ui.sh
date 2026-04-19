@@ -28,10 +28,12 @@ UI_msg() {
     local color="$1"
     shift
     case "$color" in
-    success) echo -e "${GREEN}$*${NC}" ;;
-    error) echo -e "${RED}$*${NC}" ;;
-    warn) echo -e "${YELLOW}$*${NC}" ;;
-    info) echo -e "${BLUE}$*${NC}" ;;
+    success) echo -e "${GREEN}✅ $*${NC}" ;;
+    error) echo -e "${RED}❌ $*${NC}" ;;
+    warn) echo -e "${YELLOW}⚠️ $*${NC}" ;;
+    info) echo -e "${BLUE}ℹ️ $*${NC}" ;;
+    highlight) echo -e "${MAGENTA}$*${NC}" ;;
+    bold) echo -e "${BOLD}$*${NC}" ;;
     *) echo "$*" ;;
     esac
 }
@@ -63,7 +65,27 @@ UI_menu() {
 
     local i=1
     for item in "${items[@]}"; do
-        echo "$i) $item" >&2
+        local display="$item"
+        local color="$NC"
+        if [[ "$item" == @(\!red*|\!danger*|\!warn*) ]]; then
+            color="$RED"
+            display="${item#\!red*}"
+            display="${display#\!danger*}"
+            display="${display#\!warn*}"
+        elif [[ "$item" == @(\!yellow*|\!caution*) ]]; then
+            color="$YELLOW"
+            display="${item#\!yellow*}"
+            display="${display#\!caution*}"
+        elif [[ "$item" == @(\!cyan*|\!info*) ]]; then
+            color="$CYAN"
+            display="${item#\!cyan*}"
+            display="${display#\!info*}"
+        elif [[ "$item" == @(\!magenta*|\!special*) ]]; then
+            color="$MAGENTA"
+            display="${item#\!magenta*}"
+            display="${display#\!special*}"
+        fi
+        echo -e "$i) ${color}${display}${NC}" >&2
         ((i++))
     done
     echo "q) Back/Exit" >&2
@@ -80,7 +102,9 @@ UI_menu() {
     if [[ "$result" =~ ^[0-9]+$ ]]; then
         if [[ $result -ge 1 && $result -le $count ]]; then
             local idx=$((result - 1))
-            echo "${items[$idx]}"
+            local item="${items[$idx]}"
+            item="${item#\!*}"
+            echo "$item"
             return 0
         fi
     fi
