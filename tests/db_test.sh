@@ -86,11 +86,7 @@ test_db_list_models_returns_all() {
 }
 
 test_db_list_plugins() {
-    if [[ -d "$PLUGINS_DIR" ]]; then
-        local count
-        count=$(ls "$PLUGINS_DIR" 2>/dev/null | wc -l)
-        [[ $count -ge 0 ]]
-    else
-        assert_true "[[ ! -d '$PLUGINS_DIR' ]]"
-    fi
+    local exists=0
+    [[ -d "$PLUGINS_DIR" ]] && exists=1
+    assert_equals 1 "$exists"
 }
