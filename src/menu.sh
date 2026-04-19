@@ -7,6 +7,7 @@ source "$ROOT_DIR/lib/config.sh"
 source "$ROOT_DIR/lib/lifecycle.sh"
 source "$ROOT_DIR/lib/ops.sh"
 source "$ROOT_DIR/lib/db.sh"
+source "$ROOT_DIR/lib/test_runner.sh"
 
 interactive_menu() {
     db_init
@@ -31,6 +32,7 @@ interactive_menu() {
         echo "a) DB Maintenance"
         echo "b) Plugin Directory"
         echo "c) Monitor HTTP"
+        echo "t) Run Tests"
         echo "q) Exit"
         read -p "Selection: " opt
 
@@ -99,6 +101,7 @@ interactive_menu() {
             ls -la "$PLUGINS_DIR"
             ;;
         c) monitor_http ;;
+        t) run_tests ;;
         q) exit 0 ;;
         esac
     done

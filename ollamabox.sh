@@ -11,9 +11,11 @@ source "$ROOT_DIR/lib/config.sh"
 source "$ROOT_DIR/lib/lifecycle.sh"
 source "$ROOT_DIR/lib/db.sh"
 source "$ROOT_DIR/lib/ops.sh"
+source "$ROOT_DIR/lib/test_runner.sh"
 
 trap cleanup EXIT
 
 setup_env
+install_deps
 source "$ROOT_DIR/src/menu.sh"
 
